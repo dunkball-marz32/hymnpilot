@@ -3589,7 +3589,7 @@ let SW = 0, SH = 0;
 function sizeSheet(){
   const r = scv.getBoundingClientRect(); if (!r.width) return;
   const dpr = Math.min(3, window.devicePixelRatio || 1);
-  SW = r.width; SH = Math.round(r.width * 0.47);
+  SW = r.width; SH = Math.round(r.width * 0.36);
   scv.style.height = SH + 'px';
   scv.width = Math.round(SW * dpr); scv.height = Math.round(SH * dpr);
   sg.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -4213,5 +4213,52 @@ requestAnimationFrame(loop);
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(() => {});
 })();
 </script>
-<script>(function(){var h=document.querySelector('#learnPanel h3'),l=document.getElementById('lessonList');if(!h||!l)return;h.style.cursor='pointer';function set(o){l.style.display=o?'':'none';h.textContent=o?'All lessons ▾':'All lessons ▸';}set(false);h.addEventListener('click',function(){set(l.style.display==='none');});l.addEventListener('click',function(){set(false);window.scrollTo({top:0,behavior:'smooth'});});})();</script></body>
+<script>(function(){var h=document.querySelector('#learnPanel h3'),l=document.getElementById('lessonList');if(!h||!l)return;h.style.cursor='pointer';function set(o){l.style.display=o?'':'none';h.textContent=o?'All lessons ▾':'All lessons ▸';}set(false);h.addEventListener('click',function(){set(l.style.display==='none');});l.addEventListener('click',function(){set(false);window.scrollTo({top:0,behavior:'smooth'});});})();</script><style id="hp-polish">
+body{background:linear-gradient(180deg,#E3EEFB 0,#F3F6FB 320px,#F3F6FB 100%)!important}
+.app{max-width:520px!important;margin:0 auto!important;display:flex;flex-direction:column;gap:14px!important}
+header.top{align-items:center!important;flex-wrap:nowrap!important;gap:10px!important}
+header.top .logo{height:34px;width:auto;display:block}
+header.top .eyebrow{margin:6px 0 0!important;font-size:11px!important;letter-spacing:.1em}
+header.top h1{font-size:22px!important;margin:2px 0 0!important;line-height:1.1}
+.pills{display:flex!important;flex-wrap:wrap;justify-content:flex-end;gap:6px!important;position:relative}
+.pills #soundBtn,.pills #voiceBtn{display:none!important}
+.pills.open #soundBtn,.pills.open #voiceBtn{display:inline-flex!important}
+#moreBtn{border:1px solid var(--line);background:var(--panel);border-radius:999px;width:36px;height:36px;font-size:18px;line-height:1;color:var(--muted)}
+#micBtn{font-weight:800}
+.songbar{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex!important;flex-direction:column;gap:12px!important;box-shadow:0 1px 2px rgba(20,40,80,.05)}
+.songbar>*{flex:none!important;min-height:0!important}
+.songbar .field{width:100%;font-size:12px!important;text-transform:uppercase;letter-spacing:.08em}
+.songbar select{font-size:17px!important;min-height:48px;width:100%!important;border-radius:12px}
+#partWrap select{display:none!important}
+#partSeg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#partSeg button{min-height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);font:800 14px var(--display);cursor:pointer;transition:all .15s}
+#partSeg button.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(46,84,163,.3)}
+#stageCard{padding:18px 16px 0!important;gap:12px!important;border-radius:20px!important;box-shadow:0 2px 14px rgba(20,40,80,.08)}
+#stepBar{height:6px;border-radius:99px;background:#E3E8F1;overflow:hidden}
+#stepBar i{display:block;height:100%;background:linear-gradient(90deg,#4A9BE8,#2E54A3);border-radius:99px;transition:width .3s}
+#stageCard h2{font-size:26px!important}
+#stageCard .coach-text{font-size:16px!important;color:#3a4658}
+.pitch-help,.pitch-guide{display:none!important}
+#feedback{font-size:19px!important}
+#actions{position:sticky;bottom:0;z-index:6;margin:6px -16px 0!important;padding:12px 16px calc(12px + env(safe-area-inset-bottom))!important;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);border-radius:0 0 20px 20px;display:grid!important;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px!important}
+#actions .btn,#actions button{min-height:48px!important;font-size:15px!important;font-weight:800;border-radius:14px!important}
+#actions button:disabled{display:none!important}
+#actions button:only-child{grid-column:1/-1}
+#learnPanel{border-radius:18px!important}
+#learnPanel h3{font-size:16px}
+.lessons li{border-radius:14px!important}
+.stage{border-radius:14px!important}
+.sheet{border-radius:14px!important}
+</style>
+<script id="hp-polish-js">(function(){
+function $(s){return document.querySelector(s)}
+var pills=$('.pills'); if(pills&&!$('#moreBtn')){var mb=document.createElement('button');mb.id='moreBtn';mb.type='button';mb.setAttribute('aria-label','More settings');mb.textContent='\u22ef';mb.onclick=function(){pills.classList.toggle('open')};pills.appendChild(mb);}
+function seg(){var ps=$('#partSel'),w=$('#partWrap');if(!ps||!w)return;var s=$('#partSeg');if(!s){s=document.createElement('div');s.id='partSeg';w.appendChild(s);}
+ var sig=[].map.call(ps.options,function(o){return o.value}).join('|')+'#'+ps.value; if(s.dataset.sig===sig)return; s.dataset.sig=sig; s.innerHTML='';
+ [].forEach.call(ps.options,function(o){var b=document.createElement('button');b.type='button';b.textContent=o.value;if(o.value===ps.value)b.className='on';b.onclick=function(){ps.value=o.value;ps.dispatchEvent(new Event('change',{bubbles:true}));setTimeout(seg,50)};s.appendChild(b)});}
+function bar(){var l=$('#stepLabel');if(!l)return;var b=$('#stepBar');if(!b){b=document.createElement('div');b.id='stepBar';b.innerHTML='<i></i>';l.insertAdjacentElement('afterend',b);}
+ var m=/(\d+)\s+of\s+(\d+)/i.exec(l.textContent);if(m)b.firstChild.style.width=Math.round(100*(+m[1])/(+m[2]))+'%';}
+setInterval(function(){seg();bar()},300);seg();bar();
+})();</script>
+</body>
 </html>
