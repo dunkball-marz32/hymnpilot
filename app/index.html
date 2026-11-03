@@ -4215,7 +4215,8 @@ if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude
 </script>
 <script>(function(){var h=document.querySelector('#learnPanel h3'),l=document.getElementById('lessonList');if(!h||!l)return;h.style.cursor='pointer';function set(o){l.style.display=o?'':'none';h.textContent=o?'All lessons ▾':'All lessons ▸';}set(false);h.addEventListener('click',function(){set(l.style.display==='none');});l.addEventListener('click',function(){set(false);window.scrollTo({top:0,behavior:'smooth'});});})();</script><style id="hp-polish">
 body{background:linear-gradient(180deg,#E3EEFB 0,#F3F6FB 320px,#F3F6FB 100%)!important}
-.app{max-width:520px!important;margin:0 auto!important;display:flex;flex-direction:column;gap:14px!important}
+.rehearsal-layout{display:flex!important;flex-direction:column;gap:14px}.rehearsal-layout>section{width:100%!important;box-sizing:border-box}
+.app{width:100%;box-sizing:border-box;max-width:640px!important;margin:0 auto!important;padding-inline:16px;display:flex;flex-direction:column;gap:14px!important}
 header.top{align-items:center!important;flex-wrap:nowrap!important;gap:10px!important}
 header.top .logo{height:34px;width:auto;display:block}
 header.top .eyebrow{margin:6px 0 0!important;font-size:11px!important;letter-spacing:.1em}
@@ -4250,7 +4251,7 @@ header.top h1{font-size:22px!important;margin:2px 0 0!important;line-height:1.1}
 .stage{border-radius:14px!important}
 .sheet{border-radius:14px!important}
 </style>
-<script id="hp-polish-js">(function(){
+<script id="hp-polish-js">(function(){document.documentElement.setAttribute('data-theme','light');
 function $(s){return document.querySelector(s)}
 var pills=$('.pills'); if(pills&&!$('#moreBtn')){var mb=document.createElement('button');mb.id='moreBtn';mb.type='button';mb.setAttribute('aria-label','More settings');mb.textContent='\u22ef';mb.onclick=function(){pills.classList.toggle('open')};pills.appendChild(mb);}
 function seg(){var ps=$('#partSel'),w=$('#partWrap');if(!ps||!w)return;var s=$('#partSeg');if(!s){s=document.createElement('div');s.id='partSeg';w.appendChild(s);}
