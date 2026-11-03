@@ -3177,10 +3177,11 @@ function finishRun(r){
     else if (good / total > 0.8) tip = 'That’s solid. Try it a little faster.';
     setFeedback(line + (tip ? ' ' + tip : ''), good / total > 0.7 ? 'good' : '');
     say(line + (tip ? ' ' + tip : ''));
-    if (good / total < 0.3 && S.tab === 'learn' && !LESSONS[S.lesson].basics && LESSONS.some(x => x.basics)){
+    const FK = LESSONS[S.lesson].id; window.__fails = window.__fails || {}; window.__fails[FK] = good / total < 0.3 ? (window.__fails[FK] || 0) + 1 : 0;
+    if (window.__fails[FK] >= 3 && S.tab === 'learn' && !LESSONS[S.lesson].basics && LESSONS.some(x => x.basics)){ window.__fails[FK] = 0;
       setFeedback(line + ' That one was tough. Let\u2019s go back to the basics, then come back to this.', '');
       const bb = button('Back to the basics', () => { S.lesson = 0; renderLesson(true); window.scrollTo({top:0, behavior:'smooth'}); });
-      $('#actions').appendChild(bb);
+      bb.id = 'basicsBtn'; if (!document.getElementById('basicsBtn')) $('#actions').appendChild(bb);
     }
     if (S.tab === 'learn' && LESSONS[S.lesson].kind === 'run' && good / total >= 0.6) markDone();
   } else if (r.mode === 'turn'){
