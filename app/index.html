@@ -2512,7 +2512,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 /* ---------- saved progress (per browser, optional) ---------- */
 let store = {};
 try { store = JSON.parse(localStorage.getItem('cmhBass') || '{}') || {}; } catch (e) { store = {}; }
-if (store.v !== 3) store = {v:3}; if (typeof store.bpm !== 'number') store.bpm = 66;
+if (store.v !== 4) store = {v:4}; if (typeof store.bpm !== 'number') store.bpm = 66;
 if (typeof store.voice !== 'boolean') store.voice = true;
 if (store.sound !== 'hum') store.sound = 'voice';
 function save(){ try { localStorage.setItem('cmhBass', JSON.stringify(store)); } catch (e) {} }
@@ -2951,7 +2951,7 @@ const earOK = () => $('#earbuds').checked;
 // the song picked last time may be an added one that loads a moment later; remember it before anything overwrites it
 const BOOT_SONG = store.song;
 loadSong(SONGS.find(x => x.id === store.song) || SONGS.find(x => x.id === 'where-could-i-go-bass') || SONGS[0]);
-const S = { tab:'learn', lesson:Math.min(P.lesson || 0, LESSONS.length - 1), task:null, run:null, last:null };
+const S = { tab:'learn', lesson:Math.max(0, LESSONS.findIndex(x => !x.basics)), task:null, run:null, last:null };
 
 /* ---------- ui helpers ---------- */
 function setFeedback(text, cls){ const f = $('#feedback'); f.textContent = text || ''; f.className = 'feedback' + (cls ? ' ' + cls : ''); }
@@ -3276,7 +3276,7 @@ function renderLesson(speak){
   stopRun(); stopTask(); S.last = null;
   const L = LESSONS[S.lesson];
   P.lesson = S.lesson; save();
-  $('#stepLabel').textContent = 'Lesson ' + (S.lesson + 1) + ' of ' + LESSONS.length;
+  const NB0 = L.basics ? 0 : LESSONS.filter(x => x.basics).length; $('#stepLabel').textContent = (L.basics ? 'Basics ' : 'Lesson ') + (S.lesson + 1 - NB0) + ' of ' + (L.basics ? LESSONS.filter(x => x.basics).length : LESSONS.length - NB0);
   $('#title').textContent = L.title;
   $('#coachText').textContent = L.text;
   S.task = L.kind === 'run' ? null : newTask(L);
@@ -3325,10 +3325,11 @@ function renderLessonList(){
   renderRehearsalProgress();
   const ol = $('#lessonList'); ol.replaceChildren();
   LESSONS.forEach((L, i) => {
-    const li = document.createElement('li');
+    const li = document.createElement('li'); li.hidden = !!L.basics && !LESSONS[S.lesson].basics;
+    const NB = LESSONS.filter(x => x.basics).length, off = L.basics ? 0 : NB;
     const b = document.createElement('button'); b.type = 'button';
     b.className = 'lesson' + (i === S.lesson ? ' cur' : '') + (P.done[L.id] ? ' done' : '');
-    b.innerHTML = '<span class="n">' + (P.done[L.id] ? '✓' : (i + 1)) + '</span><span class="t">' + escapeHtml(L.title) + '<span class="s">' + escapeHtml(L.sub) + '</span></span><span class="tag">' + (L.kind === 'run' ? 'With beat' : L.kind === 'seq' ? 'Notes' : 'One note') + '</span>';
+    b.innerHTML = '<span class="n">' + (P.done[L.id] ? '✓' : (i + 1 - off)) + '</span><span class="t">' + escapeHtml(L.title) + '<span class="s">' + escapeHtml(L.sub) + '</span></span><span class="tag">' + (L.kind === 'run' ? 'With beat' : L.kind === 'seq' ? 'Notes' : 'One note') + '</span>';
     b.setAttribute('aria-current', i === S.lesson ? 'step' : 'false');
     b.addEventListener('click', () => { S.lesson = i; renderLesson(true); window.scrollTo({top:0, behavior:'smooth'}); });
     li.appendChild(b); ol.appendChild(li);
@@ -4213,7 +4214,8 @@ requestAnimationFrame(loop);
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(() => {});
 })();
 </script>
-<script>(function(){var h=document.querySelector('#learnPanel h3'),l=document.getElementById('lessonList');if(!h||!l)return;h.style.cursor='pointer';function set(o){l.style.display=o?'':'none';h.textContent=o?'All lessons ▾':'All lessons ▸';}set(false);h.addEventListener('click',function(){set(l.style.display==='none');});l.addEventListener('click',function(){set(false);window.scrollTo({top:0,behavior:'smooth'});});})();</script><style id="hp-polish">
+<script>(function(){var h=document.querySelector('#learnPanel h3'),l=document.getElementById('lessonList');if(!h||!l)return;h.style.cursor='pointer';function set(o){l.style.display=o?'':'none';h.textContent=o?'All lessons ▾':'All lessons ▸';}set(false);h.addEventListener('click',function(){set(l.style.display==='none');});l.addEventListener('click',function(){set(false);window.scrollTo({top:0,behavior:'smooth'});});})();</script><style>#lessonList li[hidden]{display:none!important}</style>
+<style id="hp-polish">
 body{background:linear-gradient(180deg,#E3EEFB 0,#F3F6FB 320px,#F3F6FB 100%)!important}
 .rehearsal-layout{display:flex!important;flex-direction:column;gap:14px}.rehearsal-layout>section{width:100%!important;box-sizing:border-box}
 .app{width:100%;box-sizing:border-box;max-width:640px!important;margin:0 auto!important;padding-inline:16px;display:flex;flex-direction:column;gap:14px!important}
