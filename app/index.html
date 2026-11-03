@@ -2512,7 +2512,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 /* ---------- saved progress (per browser, optional) ---------- */
 let store = {};
 try { store = JSON.parse(localStorage.getItem('cmhBass') || '{}') || {}; } catch (e) { store = {}; }
-if (typeof store.bpm !== 'number') store.bpm = 66;
+if (store.v !== 3) store = {v:3}; if (typeof store.bpm !== 'number') store.bpm = 66;
 if (typeof store.voice !== 'boolean') store.voice = true;
 if (store.sound !== 'hum') store.sound = 'voice';
 function save(){ try { localStorage.setItem('cmhBass', JSON.stringify(store)); } catch (e) {} }
@@ -2583,7 +2583,7 @@ function buildLessons(song){
     const seq = noteSeq(SECTIONS[sec.sec]);
     L.push({id:'notes-' + sec.sec, kind:'seq', section:sec.sec, seq, hold:.6, title:sec.label + ' notes, no rhythm', sub:names(seq),
       text:sec.notesText || 'Just the notes of the ' + sec.label.toLowerCase() + ', in order. Take your time.', say:sec.label + '. Just the notes.'});
-    L.push({id:'beat-' + sec.sec, kind:'run', section:sec.sec, title:sec.label + ' with the beat', sub:sec.measures || '',
+    L.push({id:'beat-' + sec.sec, kind:'run', section:sec.sec, title:sec.label + ' · sing the words', sub:sec.measures || '',
       text:sec.beatText || 'Tap Play along and sing with me. When it feels good, tap My turn.', say:sec.label + ' with rhythm. Play along first.'});
   });
   L.push({id:'whole', kind:'run', section:'whole', title:'The whole song', sub:'Count your rests',
@@ -2591,7 +2591,7 @@ function buildLessons(song){
     say:'Now the whole song. Watch the bar counter and come in on time.'});
   const basics = L.filter(x => x.id === 'scaleUp' || x.id === 'parts' || /^n\d+$/.test(x.id)).slice(0, 5).map(x => ({ ...x, basics:true, sub:x.sub }));
   if (basics.length){ basics[0].title = 'Basics: find your pitch'; basics[0].text = 'If you ever feel lost, this is where to start. Sing do, re, mi with me, then each note of your part. ' + basics[0].text; }
-  const songL = L.filter(x => !(x.id === 'scaleUp' || x.id === 'scaleDown' || x.id === 'parts' || /^n\d+$/.test(x.id) || x.id === 'whole'));
+  const songL = L.filter(x => !(String(x.id).startsWith('notes-') || x.id === 'scaleUp' || x.id === 'scaleDown' || x.id === 'parts' || /^n\d+$/.test(x.id) || x.id === 'whole'));
   const extra = [['verse','Verse 1, all eight bars','Now the whole first verse.'],['chorus','Chorus, all eight bars','The chorus after each verse.'],['verse2','Verse 2','Sing the second verse. The music is the same, the words change.'],['verse3','Verse 3','Sing the third verse. Same music, new words.']].filter(x => SECTIONS[x[0]]).map(x => ({ id:'run-' + x[0], kind:'run', section:x[0], title:x[1], sub:'With the beat', text:x[2] + ' Play along first, then try My turn.', say:x[1] + '. Play along first.' }));
   const whole = L.find(x => x.id === 'whole'); if (whole){ whole.title = 'The whole song'; whole.text = 'Sing all three verses and the chorus after each, start to finish. Watch the bar counter.'; }
   return [...basics, ...songL, ...extra, ...(whole ? [whole] : [])];
@@ -3776,7 +3776,7 @@ function addUserSong(rec){
   return song;
 }
 async function loadUserSongs(){
-  const ids = (await kvGet('songlist')) || [];
+  const ids = [];
   for (const id of ids){ const rec = await kvGet('song:' + id); if (rec) { try { addUserSong(rec); } catch (e) {} } }
   const want = SONGS.find(x => x.id === BOOT_SONG);
   if (want && want !== SONG) switchSong(want); else renderSongStatic();
