@@ -193,7 +193,11 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
 @media(prefers-reduced-motion:no-preference){button,.btn,.lesson{transition:background .15s,border-color .15s,box-shadow .15s}button:hover:not(:disabled),.btn:hover{box-shadow:0 2px 10px #16202D15}}
 
 </style>
-<style>#addSong,#delSong,#rehearsalOverview,.tabs,.library-tools,#appVersion{display:none!important}#fullSheetImage{min-width:0!important}#learnPanel h3{display:flex;justify-content:space-between;align-items:center}</style></head>
+<style>#addSong,#delSong,#rehearsalOverview,.tabs,.library-tools,#appVersion{display:none!important}#fullSheetImage{min-width:0!important}#learnPanel h3{display:flex;justify-content:space-between;align-items:center}
+#scorePages{overflow-x:auto;-webkit-overflow-scrolling:touch;background:#fff;border-radius:12px;touch-action:pan-x pan-y pinch-zoom}
+#scorePages img{display:block;width:100%;max-width:none;height:auto;border-bottom:1px solid #dde3ec}
+#scorePages.big img{width:200%}
+#scorePages .pg{font-size:13px;color:#566278;padding:6px 10px;background:#f4f6fa}</style></head>
 <body>
 <!-- the HymnPilot logo (branding/files/hymnpilot-logo.svg), drawn once and shown in the header -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="hp-wordmark" viewBox="-3.8 -48.75 243.31 66.67"><g fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -398,6 +402,13 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
     <p class="note">If your music is printed in shape notes, the shape tells you the note, so you can read your part by shape alone.</p>
     <div class="ladder" id="ladderList"></div>
     <div id="cheats"></div>
+  </section>
+
+  <section class="card" id="scorePanel" hidden aria-label="Full sheet music">
+    <h3>Full sheet music</h3>
+    <p class="note" id="scoreNote">Every page of the score. Pinch to zoom, or tap Bigger and scroll sideways.</p>
+    <div class="actions"><button class="btn" id="scoreZoom" type="button" aria-pressed="false">Bigger</button></div>
+    <div id="scorePages"></div>
   </section>
   </div>
   <details class="card library-tools">
@@ -2601,7 +2612,28 @@ const SHAPE_SVG = {
   la:'<rect x="1" y="3" width="20" height="12"/>',
   ti:'<path d="M1 8 Q11 -3 21 8 L11 17 Z"/>'
 };
+// Every page of the song's score at the bottom; built when a song opens, pictures load as they scroll near.
+function renderScorePages(){
+  const box = $('#scorePages'), pages = SONG.embeddedPages;
+  $('#scorePanel').hidden = !(pages && pages.length);
+  if (!pages || !pages.length){ box.replaceChildren(); box.dataset.grp = ''; return; }
+  const key = String(SONG.group || SONG.id);
+  if (box.dataset.grp === key) return;
+  box.dataset.grp = key;
+  box.replaceChildren(...pages.flatMap((src, i) => {
+    const label = document.createElement('div'); label.className = 'pg'; label.textContent = 'Page ' + (i + 1) + ' of ' + pages.length;
+    const img = document.createElement('img'); img.loading = 'lazy'; img.decoding = 'async'; img.src = src;
+    img.alt = SONG.title + ' sheet music, page ' + (i + 1) + ' of ' + pages.length;
+    return [label, img];
+  }));
+}
+$('#scoreZoom').addEventListener('click', () => {
+  const big = $('#scorePages').classList.toggle('big');
+  $('#scoreZoom').textContent = big ? 'Fit to screen' : 'Bigger';
+  $('#scoreZoom').setAttribute('aria-pressed', String(big));
+});
 function renderSongStatic(){
+  renderScorePages();
   $('#songTitle').textContent = SONG.title;
   document.title = 'HymnPilot · ' + SONG.title;
   renderRehearsalProgress();
