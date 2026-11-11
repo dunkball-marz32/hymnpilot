@@ -2631,11 +2631,11 @@ function renderSongStatic(){
 }
 
 /* ---------- audio ---------- */
-let ctx = null, master = null, reedWave = null, padWave = null, muteUntil = 0;
+let ctx = null, master = null, reedWave = null, padWave = null, muteUntil = 0, micStarting = false;
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 function ensureAudio(){
   if (!ctx){
-    setSession(mic ? 'play-and-record' : 'playback');
+    setSession((mic || micStarting) ? 'play-and-record' : 'playback');
     const AC = window.AudioContext || window.webkitAudioContext;
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = 0.9;
@@ -2872,18 +2872,29 @@ function fold(m, ref){ return m - 12 * Math.round((m - ref) / 12); }
 let mic = null, micState = 'off';
 async function startMic(){
   stopRun();
-  setSession('play-and-record');
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('unsupported');
-  const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}});
-  // Rebuild the audio engine while the mic is live: iPhone browsers can feed silence to an engine made before the mic started.
-  if (ctx){ try { await ctx.close(); } catch (e) {} ctx = null; }
-  ensureAudio();
-  const src = ctx.createMediaStreamSource(stream);
-  const an = ctx.createAnalyser(); an.fftSize = 2048;
-  const sink = ctx.createGain(); sink.gain.value = 0;
-  src.connect(an); an.connect(sink); sink.connect(ctx.destination);
-  mic = { stream, an, src, sink, buf:new Float32Array(2048), ds:new Float32Array(1024), level:0, hz:0 };
-  if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
+  micStarting = true;
+  try {
+    setSession('play-and-record');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('unsupported');
+    const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:true}});
+    // Rebuild the audio engine while the mic is live: iPhone browsers can feed silence to an engine made before the mic started.
+    if (ctx){ try { await ctx.close(); } catch (e) {} ctx = null; }
+    ensureAudio();
+    // iPhone Safari: the session must stay play-and-record; a playback session silences the mic.
+    setSession('play-and-record');
+    const src = ctx.createMediaStreamSource(stream);
+    const an = ctx.createAnalyser(); an.fftSize = 2048;
+    const sink = ctx.createGain(); sink.gain.value = 0;
+    src.connect(an); an.connect(sink); sink.connect(ctx.destination);
+    mic = { stream, an, src, sink, buf:new Float32Array(2048), ds:new Float32Array(1024), level:0, hz:0 };
+    if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
+    if (ctx.state !== 'running') armResume();
+  } finally { micStarting = false; }
+}
+// iPhone Safari may keep an engine made after an await suspended; the next tap wakes it.
+function armResume(){
+  const wake = () => { if (ctx && ctx.state !== 'running') { try { ctx.resume(); } catch (e) {} } if (!ctx || ctx.state === 'running') ['pointerdown','touchend','click'].forEach(t => document.removeEventListener(t, wake, true)); };
+  ['pointerdown','touchend','click'].forEach(t => document.addEventListener(t, wake, true));
 }
 function stopMic(){
   if (mic){ mic.stream.getTracks().forEach(t => t.stop()); mic = null; }
