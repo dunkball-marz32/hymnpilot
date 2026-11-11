@@ -193,7 +193,7 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
 @media(prefers-reduced-motion:no-preference){button,.btn,.lesson{transition:background .15s,border-color .15s,box-shadow .15s}button:hover:not(:disabled),.btn:hover{box-shadow:0 2px 10px #16202D15}}
 
 </style>
-<style>#addSong,#delSong,#rehearsalOverview,.tabs,.library-tools,#appVersion{display:none!important}#fullSheetImage{min-width:0!important}#learnPanel h3{display:flex;justify-content:space-between;align-items:center}
+<style>#addSong,#delSong,#rehearsalOverview,.tabs,.library-tools,#appVersion{display:none!important}#fullSheetImage{min-width:0!important}#fullSheetBox{display:none!important}#learnPanel h3{display:flex;justify-content:space-between;align-items:center}
 #scorePages{overflow-x:auto;-webkit-overflow-scrolling:touch;background:#fff;border-radius:12px;touch-action:pan-x pan-y pinch-zoom}
 #scorePages img{display:block;width:100%;max-width:none;height:auto;border-bottom:1px solid #dde3ec}
 #scorePages.big img{width:200%}
@@ -278,7 +278,6 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
     <div class="sheet" id="sheetBox" hidden>
       <canvas id="sheet" aria-label="Your sheet music with a moving line at the current beat"></canvas>
     </div>
-    <details id="fullSheetBox" open hidden style="margin:10px 0"><summary style="cursor:pointer;min-height:40px;padding:8px">Full sheet music · tap to expand</summary><div style="overflow:auto;background:white;border-radius:12px"><img id="fullSheetImage" alt="Original sheet music for the current phrase" style="display:block;width:100%;height:auto;min-width:550px"></div></details>
     <div class="actions" id="sheetTools" hidden>
       <label class="btn" for="pdfIn">Change PDF</label>
       <button class="btn" type="button" id="sheetReset">Remove sheet music</button>
@@ -410,6 +409,7 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
     <div class="actions"><button class="btn" id="scoreZoom" type="button" aria-pressed="false">Bigger</button></div>
     <div id="scorePages"></div>
   </section>
+    <details id="fullSheetBox" open hidden style="margin:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px"><summary style="cursor:pointer;min-height:40px;padding:8px">Full sheet music · tap to expand</summary><div style="overflow:auto;background:white;border-radius:12px"><img id="fullSheetImage" alt="Original sheet music for the current phrase" style="display:block;width:100%;height:auto;min-width:550px"></div></details>
   </div>
   <details class="card library-tools">
     <summary>Keep your music safe <span>Backup &amp; restore</span></summary>
