@@ -403,6 +403,12 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
     <div id="cheats"></div>
   </section>
 
+  <section class="card" id="myScores" hidden aria-label="My pitch scores">
+    <h3>My pitch scores</h3>
+    <p class="note">Saved on this phone each time you sing with the mic on. On pitch = green, within 25 cents.</p>
+    <ol class="lessons" id="myScoreList"></ol>
+  </section>
+
   <section class="card" id="scorePanel" hidden aria-label="Full sheet music">
     <h3>Full sheet music</h3>
     <p class="note" id="scoreNote">Every page of the score. Pinch to zoom, or tap Bigger and scroll sideways.</p>
@@ -421,7 +427,7 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
   <p class="note" id="appVersion" style="text-align:center">HymnPilot <span data-version>2.1 · v4 speed build 2026-11-10 · four parts</span></p>
 </div>
 
-<script src="songs.js?v=5"></script>
+<script src="songs.js?v=6"></script>
 <script data-source="formats.js">
 // HymnPilot file formats: reads PowerPoint (.pptx is a zip) and TIFF images on the device, so song import needs no outside service.
 (function (root) {
@@ -2632,8 +2638,21 @@ $('#scoreZoom').addEventListener('click', () => {
   $('#scoreZoom').textContent = big ? 'Fit to screen' : 'Bigger';
   $('#scoreZoom').setAttribute('aria-pressed', String(big));
 });
+// The last 10 checked runs of this song and part, newest first (saved in store.scores by finishRun).
+function renderScores(){
+  const list = (store.scores || []).filter(x => x.song === SONG.id).slice(-10).reverse();
+  $('#myScores').hidden = !list.length;
+  $('#myScoreList').replaceChildren(...list.map(x => {
+    const li = document.createElement('li'); li.className = 'note';
+    const d = new Date(x.t);
+    li.textContent = d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }) +
+      ' · ' + x.lesson + ' · ' + x.good + ' of ' + x.total + ' on pitch (' + Math.round(100 * x.good / x.total) + '%)' + (x.bpm ? ' · ' + x.bpm + ' bpm' : '');
+    return li;
+  }));
+}
 function renderSongStatic(){
   renderScorePages();
+  renderScores();
   $('#songTitle').textContent = SONG.title;
   document.title = 'HymnPilot · ' + SONG.title;
   renderRehearsalProgress();
@@ -3214,6 +3233,16 @@ function finishRun(r){
     if (miss > total * 0.4) tip = 'Sing a little louder, or set the phone closer.';
     else if (worst != null && Math.abs(wv) > PITCH_GREEN_CENTS) tip = 'Your ' + NOTE[worst].n + ' ran ' + (wv < 0 ? 'low. Aim a hair higher.' : 'high. Aim a hair lower.');
     else if (good / total > 0.8) tip = 'That’s solid. Try it a little faster.';
+    // save every checked run on this phone, so "sings better" can be measured before and after
+    try {
+      const L0 = LESSONS[S.lesson] || {};
+      const lesson = S.tab === 'learn' ? (L0.title || L0.id || '') : 'Practice';
+      const prev = (store.scores || []).filter(x => x.song === SONG.id && x.lesson === lesson);
+      const best = prev.reduce((b, x) => (x.good / x.total > b ? x.good / x.total : b), -1);
+      store.scores = (store.scores || []).concat({ t: new Date().toISOString(), song: SONG.id, lesson, good, close, miss, total, bpm: store.bpm }).slice(-500);
+      save(); renderScores();
+      if (best >= 0) line += ' Your best here: ' + Math.round(best * 100) + '%.';
+    } catch (e) {}
     setFeedback(line + (tip ? ' ' + tip : ''), good / total > 0.7 ? 'good' : '');
     say(line + (tip ? ' ' + tip : ''));
     const FK = LESSONS[S.lesson].id; window.__fails = window.__fails || {}; window.__fails[FK] = good / total < 0.3 ? (window.__fails[FK] || 0) + 1 : 0;
