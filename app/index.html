@@ -421,7 +421,7 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
   <p class="note" id="appVersion" style="text-align:center">HymnPilot <span data-version>2.1 · v4 speed build 2026-11-10 · four parts</span></p>
 </div>
 
-<script src="songs.js?v=4"></script>
+<script src="songs.js?v=5"></script>
 <script data-source="formats.js">
 // HymnPilot file formats: reads PowerPoint (.pptx is a zip) and TIFF images on the device, so song import needs no outside service.
 (function (root) {
@@ -2989,7 +2989,7 @@ const earOK = () => $('#earbuds').checked;
 /* ---------- state ---------- */
 // the song picked last time may be an added one that loads a moment later; remember it before anything overwrites it
 const BOOT_SONG = store.song;
-loadSong(SONGS.find(x => x.id === store.song) || SONGS.find(x => x.id === 'where-could-i-go-bass') || SONGS[0]);
+loadSong(SONGS.find(x => x.id === store.song) || SONGS.find(x => x.id === 'amazing-grace-bass') || SONGS[0]);
 const S = { tab:'learn', lesson:Math.max(0, LESSONS.findIndex(x => !x.basics)), task:null, run:null, last:null };
 
 /* ---------- ui helpers ---------- */
