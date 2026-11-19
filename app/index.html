@@ -3809,13 +3809,14 @@ loadSheet();
 let lastTs = performance.now(), frame = 0;
 function loop(ts){
   const dt = Math.min(0.1, (ts - lastTs) / 1000); lastTs = ts; frame++;
-  if (mic && ctx && frame % 2 === 0){ try { onPitch(detect()); } catch (e) {} }
   if (S.run) tickRun();
   if (S.task && S.task.active) tickTask(dt);
   draw();
   drawSheet();
   requestAnimationFrame(loop);
 }
+// Pitch is read on a steady 30-a-second timer, not once per drawn frame, so a slow screen can't starve the score of samples.
+setInterval(() => { if (mic && ctx){ try { onPitch(detect()); } catch (e) {} } }, 33);
 document.addEventListener('visibilitychange', () => { if (document.hidden){ stopRun(); stopTask(); } });
 
 /* ---------- boot ---------- */
