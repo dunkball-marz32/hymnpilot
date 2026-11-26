@@ -413,7 +413,16 @@ button,a,label.btn,summary{-webkit-tap-highlight-color:transparent}button:focus-
     <h3>Full sheet music</h3>
     <p class="note" id="scoreNote">Every page of the score. Pinch to zoom, or tap Bigger and scroll sideways.</p>
     <div class="actions"><button class="btn" id="scoreZoom" type="button" aria-pressed="false">Bigger</button></div>
+    <div id="verseTop"></div>
+    <div id="verseNav" hidden style="position:sticky;top:0;z-index:2;background:var(--panel);padding:6px 0 8px">
+      <p id="verseLabel" aria-live="polite" style="margin:0 0 6px;text-align:center;font-weight:700;font-size:18px">Verse 1</p>
+      <div class="actions" style="margin:0"><button class="btn" id="versePrev" type="button">&lsaquo; Previous verse</button><button class="btn" id="verseNext" type="button">Next verse &rsaquo;</button></div>
+    </div>
     <div id="scorePages"></div>
+    <div id="verseNavBottom" hidden style="padding:10px 0 2px">
+      <p id="verseLabelBottom" style="margin:0 0 6px;text-align:center;font-weight:700;font-size:16px">End of verse 1</p>
+      <div class="actions" style="margin:0"><button class="btn" id="versePrevB" type="button">&lsaquo; Previous verse</button><button class="btn" id="verseNextB" type="button">Next verse &rsaquo;</button></div>
+    </div>
   </section>
     <details id="fullSheetBox" open hidden style="margin:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px"><summary style="cursor:pointer;min-height:40px;padding:8px">Full sheet music · tap to expand</summary><div style="overflow:auto;background:white;border-radius:12px"><img id="fullSheetImage" alt="Original sheet music for the current phrase" style="display:block;width:100%;height:auto;min-width:550px"></div></details>
   </div>
@@ -2625,8 +2634,11 @@ function renderScorePages(){
   $('#scorePanel').hidden = !(pages && pages.length);
   if (!pages || !pages.length){ box.replaceChildren(); box.dataset.grp = ''; return; }
   const key = String(SONG.group || SONG.id);
+  $('#verseNav').hidden = $('#verseNavBottom').hidden = !SONG.versePages;
+  $('#scoreNote').textContent = SONG.versePages ? 'One verse at a time. Tap Previous or Next verse. When you sing, the page turns to the verse you are singing.' : 'Every page of the score. Pinch to zoom, or tap Bigger and scroll sideways.';
   if (box.dataset.grp === key) return;
   box.dataset.grp = key;
+  if (SONG.versePages){ showVersePage(1, true); return; }
   box.replaceChildren(...pages.flatMap((src, i) => {
     const label = document.createElement('div'); label.className = 'pg'; label.textContent = 'Page ' + (i + 1) + ' of ' + pages.length;
     const img = document.createElement('img'); img.loading = 'lazy'; img.decoding = 'async'; img.src = src;
@@ -2634,6 +2646,43 @@ function renderScorePages(){
     return [label, img];
   }));
 }
+// Songs with one page per verse (song.versePages): show one verse page at a time, Previous / Next verse,
+// and turn to the verse being sung (followVerse, from the main loop) whenever the sung bar moves to another verse.
+let versePage = 1, verseFollow = '';
+function showVersePage(n, reset){
+  const pages = SONG.embeddedPages; if (!pages || !pages.length || !SONG.versePages) return;
+  n = Math.max(1, Math.min(pages.length, n)); versePage = n; if (reset) verseFollow = '';
+  const box = $('#scorePages');
+  let img = box.querySelector('img');
+  if (!img || box.children.length !== 1){ img = document.createElement('img'); img.decoding = 'async'; box.replaceChildren(img); }
+  img.src = pages[n - 1]; img.alt = SONG.title + ' sheet music, verse ' + n + ' of ' + pages.length;
+  $('#verseLabel').textContent = 'Verse ' + n + ' of ' + pages.length;
+  $('#verseLabelBottom').textContent = 'End of verse ' + n + ' of ' + pages.length;
+  $('#versePrev').disabled = $('#versePrevB').disabled = n <= 1; $('#verseNext').disabled = $('#verseNextB').disabled = n >= pages.length;
+}
+// open a verse at its top (used by the buttons under the sheet, and when the page turns by itself while the sheet is on screen)
+function scrollToVerseTop(){
+  const y = $('#verseTop').getBoundingClientRect().top + window.scrollY - 4;
+  window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+}
+function sheetOnScreen(){
+  const r = $('#scorePages').getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight;
+}
+function followVerse(){
+  if (!SONG || !SONG.versePages) return;
+  const pos = sheetPos(); if (!pos) return;
+  const M = MEAS[pos.m]; if (!M) return;
+  // turn the page when singing starts, the lesson changes, or the sung bar moves to another verse; otherwise keep the verse the user picked
+  const key = (S.run ? 'run' + S.run.t0 : 'idle' + S.tab + ':' + S.lesson + ':' + $('#secSel').value) + ':' + M.p;
+  if (key === verseFollow) return;
+  verseFollow = key;
+  if (M.p !== versePage){ const look = S.run && sheetOnScreen(); showVersePage(M.p); if (look) scrollToVerseTop(); }
+}
+$('#versePrev').addEventListener('click', () => showVersePage(versePage - 1));
+$('#verseNext').addEventListener('click', () => showVersePage(versePage + 1));
+$('#versePrevB').addEventListener('click', () => { showVersePage(versePage - 1); scrollToVerseTop(); });
+$('#verseNextB').addEventListener('click', () => { showVersePage(versePage + 1); scrollToVerseTop(); });
 $('#scoreZoom').addEventListener('click', () => {
   const big = $('#scorePages').classList.toggle('big');
   $('#scoreZoom').textContent = big ? 'Fit to screen' : 'Bigger';
@@ -3813,6 +3862,7 @@ function loop(ts){
   if (S.task && S.task.active) tickTask(dt);
   draw();
   drawSheet();
+  followVerse();
   requestAnimationFrame(loop);
 }
 // Pitch is read on a steady 30-a-second timer, not once per drawn frame, so a slow screen can't starve the score of samples.
